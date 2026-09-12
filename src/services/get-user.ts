@@ -10,7 +10,8 @@ export async function getUser(): Promise<User> {
         'https://ai-api.beakfeather.com/api/v1/auth/me', {
             headers: {
                 'X-API-Key': applicationKey
-            }
+            },
+            credentials: 'include'
         }
     )
 

@@ -1,0 +1,30 @@
+export type ProviderModels = {
+    chat_completion: string[]
+    translation: string[]
+    vector_embedding: string[]
+}
+
+
+export type ProvidersOffering = {
+    providers: Record<string, ProviderModels>
+}
+
+
+export async function getProviderModels(): Promise<ProvidersOffering> {
+    console.log("Calling /api/v1/models")
+    const applicationKey = import.meta.env.VITE_API_KEY
+    const response = await fetch(
+        'https://ai-api.beakfeather.com/api/v1/models', {
+            headers: {
+                'X-API-Key': applicationKey
+            },
+            credentials: 'include'
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch Models')
+    }
+
+    return response.json()
+}
