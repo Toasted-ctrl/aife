@@ -1,0 +1,89 @@
+import { useEffect } from "react"
+import { Link, useLocation } from "react-router-dom"
+
+type NavDrawerProps = {
+    open: boolean
+    onClose: () => void
+}
+
+const navItems = [
+    {
+        to: "/chat",
+        label: "Chat",
+        icon: (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+        ),
+    },
+    {
+        to: "/settings",
+        label: "Settings",
+        icon: (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+        ),
+    },
+]
+
+export function NavDrawer({ open, onClose }: NavDrawerProps) {
+    const location = useLocation()
+
+    useEffect(() => {
+        function handleKey(e: KeyboardEvent) {
+            if (e.key === "Escape") onClose()
+        }
+        if (open) {
+            document.addEventListener("keydown", handleKey)
+            return () => document.removeEventListener("keydown", handleKey)
+        }
+    }, [open, onClose])
+
+    return (
+        <>
+            <div
+                className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                onClick={onClose}
+            />
+
+            <nav
+                className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col bg-zinc-900 shadow-xl transition-transform duration-200 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}
+            >
+                <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+                    <span className="text-sm font-semibold text-white">AIFE</span>
+                    <button
+                        onClick={onClose}
+                        className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="flex-1 px-3 py-3 space-y-1">
+                    {navItems.map((item) => {
+                        const active = location.pathname === item.to || location.pathname.startsWith(item.to + "/")
+                        return (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={onClose}
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                                    active
+                                        ? "bg-zinc-800 text-white"
+                                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                                }`}
+                            >
+                                {item.icon}
+                                {item.label}
+                            </Link>
+                        )
+                    })}
+                </div>
+            </nav>
+        </>
+    )
+}

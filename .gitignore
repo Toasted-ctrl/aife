@@ -33,3 +33,6 @@ tsconfig.json
 tsconfig.node.json
 vite.config.ts
 .env
+
+# K8s
+k8s/

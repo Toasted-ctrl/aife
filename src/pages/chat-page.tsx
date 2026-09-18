@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { ChatProviderDropdown } from "../components/chat-model-selector"
+import { AppHeader } from "../components/app-header"
+import { ChatModelSelector } from "../components/chat-model-selector"
 import { getProviderModels, type ProvidersOffering } from "../services/get-models"
+import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
+import { getUser, type User } from "../services/get-user"
 import { streamAgent } from "../services/stream-agent"
 
 type Message = {
@@ -11,7 +15,10 @@ type Message = {
 }
 
 export function ChatPage() {
+    const navigate = useNavigate()
+    const [user, setUser] = useState<User | null>(null)
     const [offerings, setOfferings] = useState<ProvidersOffering | null>(null)
+    const [providerConfigs, setProviderConfigs] = useState<ProviderConfiguration[]>([])
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [loading, setLoading] = useState(false)
@@ -23,7 +30,14 @@ export function ChatPage() {
     const abortRef = useRef<AbortController | null>(null)
 
     useEffect(() => {
+        getUser()
+            .then(setUser)
+            .catch(() => navigate("/login", { replace: true }))
+    }, [navigate])
+
+    useEffect(() => {
         getProviderModels().then(setOfferings).catch(console.error)
+        getProviderConfiguration().then((res) => setProviderConfigs(res.providers)).catch(console.error)
     }, [])
 
     useEffect(() => {
@@ -108,23 +122,25 @@ export function ChatPage() {
 
     return (
         <div className="flex h-svh flex-col bg-zinc-950">
-            {/* Header */}
-            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
-                <h1 className="shrink-0 text-sm font-semibold text-white">AIFE</h1>
-                {offerings && (
-                    <ChatProviderDropdown
-                        offerings={offerings}
-                        onSelect={(p, m) => { setProvider(p); setModel(m) }}
-                    />
-                )}
-            </header>
+            <AppHeader
+                showNewChat={messages.length > 0}
+                onNewChat={() => {
+                    if (loading) abortRef.current?.abort()
+                    setMessages([])
+                    setThreadId(null)
+                    setLoading(false)
+                }}
+            />
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto">
                 {messages.length === 0 ? (
-                    <div className="flex h-full items-center justify-center">
+                    <div className="flex h-full flex-col items-center justify-center gap-2">
+                        <p className="text-3xl font-semibold text-zinc-200">
+                            {user ? `Hi ${user.first_name}!` : ""}
+                        </p>
                         <p className="text-sm text-zinc-500">
-                            Start a conversation
+                            Select a model or agent below to start chatting.
                         </p>
                     </div>
                 ) : (
@@ -165,8 +181,23 @@ export function ChatPage() {
             </div>
 
             {/* Input */}
-            <div className="shrink-0 border-t border-zinc-800 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <div className="mx-auto flex max-w-2xl items-end gap-2">
+            <div className="shrink-0 border-t border-zinc-800 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div className="mx-auto max-w-2xl">
+                    {offerings ? (
+                        <ChatModelSelector
+                            offerings={offerings}
+                            providerConfigs={providerConfigs}
+                            selectedProvider={provider}
+                            selectedModel={model}
+                            onSelect={(p, m) => { setProvider(p); setModel(m) }}
+                        />
+                    ) : (
+                        <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-zinc-500">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-600" />
+                            Loading models...
+                        </div>
+                    )}
+                    <div className="mt-2 flex items-end gap-2">
                     <textarea
                         ref={textareaRef}
                         value={input}
@@ -182,7 +213,7 @@ export function ChatPage() {
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || loading || !model}
-                        className="flex h-[46px] w-[46px] shrink-0 cursor-pointer items-center justify-center rounded-xl bg-white text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                        className="flex h-[48px] w-[48px] shrink-0 cursor-pointer items-center justify-center rounded-xl bg-white text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                         <svg
                             width="18"
@@ -197,6 +228,7 @@ export function ChatPage() {
                             <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                     </button>
+                    </div>
                 </div>
             </div>
         </div>
