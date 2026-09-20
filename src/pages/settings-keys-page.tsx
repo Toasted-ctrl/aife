@@ -46,7 +46,7 @@ export function SettingsKeysPage() {
     const providersRequiringKeys = providers.filter((p) => p.requires_api_key)
 
     return (
-        <div className="flex min-h-svh flex-col bg-zinc-950">
+        <div className="flex min-h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px]">
             <AppHeader />
             <div className="flex-1 px-4 py-10">
             <div className="mx-auto max-w-xl">

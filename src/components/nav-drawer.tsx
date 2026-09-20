@@ -51,8 +51,8 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             <nav
                 className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col bg-zinc-900 shadow-xl transition-transform duration-200 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}
             >
-                <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-                    <span className="text-sm font-semibold text-white">AIFE</span>
+                <div className="flex items-center justify-between border-b border-zinc-800/60 px-4 py-3">
+                    <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-sm font-bold text-transparent">AIFE</span>
                     <button
                         onClick={onClose}
                         className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
@@ -73,7 +73,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                                 onClick={onClose}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                                     active
-                                        ? "bg-zinc-800 text-white"
+                                        ? "bg-amber-500/10 text-amber-300"
                                         : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
                                 }`}
                             >

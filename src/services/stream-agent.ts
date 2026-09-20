@@ -11,11 +11,14 @@ export type StreamRequest = {
     model: string
     prompt: string
     parameters?: ModelParameters
+    mcpTools?: string[]
 }
 
 export type StreamCallbacks = {
     onChunk: (text: string) => void
     onThreadId?: (threadId: string) => void
+    onToolUse?: (name: string, input: string) => void
+    onToolResult?: (name: string, content: string) => void
 }
 
 export async function streamAgent(
@@ -49,7 +52,7 @@ export async function streamAgent(
 
                 },
                 prompt: request.prompt,
-                tools: [],
+                mcp_tools: request.mcpTools?.length ? request.mcpTools : null,
             }),
         },
     )
@@ -84,6 +87,16 @@ export async function streamAgent(
                     if (parsed.data.content) callbacks.onChunk(parsed.data.content)
                     const tid = parsed.data.metadata?.thread_id
                     if (tid) callbacks.onThreadId?.(tid)
+                } else if (parsed.type === "tool_use" && parsed.data) {
+                    const input = typeof parsed.data.input === "string"
+                        ? parsed.data.input
+                        : JSON.stringify(parsed.data.input ?? {}, null, 2)
+                    callbacks.onToolUse?.(parsed.data.name ?? "Tool", input)
+                } else if (parsed.type === "tool_result" && parsed.data) {
+                    const content = typeof parsed.data.content === "string"
+                        ? parsed.data.content
+                        : JSON.stringify(parsed.data.content ?? "", null, 2)
+                    callbacks.onToolResult?.(parsed.data.name ?? "Tool", content)
                 }
             } catch {
                 // skip unparseable lines
