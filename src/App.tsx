@@ -4,6 +4,7 @@ import { ChatPage } from './pages/chat-page'
 import { LoginPage } from './pages/login-page'
 import { SettingsPage } from './pages/settings-page'
 import { SettingsKeysPage } from './pages/settings-keys-page'
+import { MyDocumentsPage } from './pages/my-documents-page'
 import { getUser } from './services/get-user'
 
 function AuthRedirect() {
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/keys" element={<SettingsKeysPage />} />
+                <Route path="/my-documents" element={<MyDocumentsPage />} />
             </Routes>
         </BrowserRouter>
     )
