@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/app-header'
 import { FileUploadButton } from '../components/file-upload-button'
 import { addToVectorStore } from '../services/add-to-vector-store'
+import { deleteUserDocument } from '../services/delete-user-document'
+import { getUserDocuments, type UserDocument } from '../services/get-user-documents'
 import { getUser } from '../services/get-user'
 
 type UploadEntry = {
@@ -23,9 +25,45 @@ export function MyDocumentsPage() {
     const [memoryText, setMemoryText] = useState('')
     const [memorySaving, setMemorySaving] = useState(false)
 
+    const [storedDocuments, setStoredDocuments] = useState<UserDocument[]>([])
+    const [documentsLoading, setDocumentsLoading] = useState(false)
+    const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+
     useEffect(() => {
         getUser().catch(() => navigate('/login', { replace: true }))
     }, [navigate])
+
+    useEffect(() => {
+        const scope = tab === 'files' ? 'user_vs_files' : 'user_vs_memories'
+        setDocumentsLoading(true)
+        getUserDocuments(scope)
+            .then(res => setStoredDocuments(res.documents))
+            .catch(() => setStoredDocuments([]))
+            .finally(() => setDocumentsLoading(false))
+    }, [tab])
+
+    async function handleDelete(documentId: string) {
+        setDeletingIds(prev => new Set(prev).add(documentId))
+        try {
+            await deleteUserDocument(documentId)
+            setStoredDocuments(prev => prev.filter(d => d.id !== documentId))
+        } catch {
+            // leave the item in place so the user can retry
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev)
+                next.delete(documentId)
+                return next
+            })
+        }
+    }
+
+    function refreshDocuments() {
+        const scope = tab === 'files' ? 'user_vs_files' : 'user_vs_memories'
+        getUserDocuments(scope)
+            .then(res => setStoredDocuments(res.documents))
+            .catch(() => {})
+    }
 
     async function handleFileProcessed(file: { name: string; text: string }) {
         const entry: UploadEntry = { name: file.name, kind: 'file', status: 'uploading' }
@@ -36,6 +74,7 @@ export function MyDocumentsPage() {
             setUploads(prev =>
                 prev.map(u => u === entry ? { ...u, status: 'done' } : u)
             )
+            refreshDocuments()
         } catch (err) {
             setUploads(prev =>
                 prev.map(u => u === entry
@@ -62,6 +101,7 @@ export function MyDocumentsPage() {
             )
             setMemoryName('')
             setMemoryText('')
+            refreshDocuments()
         } catch (err) {
             setUploads(prev =>
                 prev.map(u => u === entry
@@ -161,6 +201,55 @@ export function MyDocumentsPage() {
                                     {memorySaving ? 'Saving…' : 'Save memory'}
                                 </button>
                             </div>
+                        )}
+                    </div>
+
+                    <div className="mt-6 space-y-2">
+                        <h2 className="text-sm font-medium text-zinc-400">
+                            Stored {tab === 'files' ? 'files' : 'memories'}
+                        </h2>
+                        {documentsLoading ? (
+                            <p className="text-xs text-zinc-500">Loading…</p>
+                        ) : storedDocuments.length === 0 ? (
+                            <p className="text-xs text-zinc-500">
+                                No {tab === 'files' ? 'files' : 'memories'} stored yet.
+                            </p>
+                        ) : (
+                            storedDocuments.map(doc => (
+                                <div
+                                    key={doc.id}
+                                    className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
+                                >
+                                    {tab === 'files' ? (
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                            <polyline points="14 2 14 8 20 8" />
+                                        </svg>
+                                    ) : (
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
+                                            <path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z" />
+                                            <circle cx="12" cy="9" r="2.5" />
+                                        </svg>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm text-white">{doc.name}</p>
+                                        <p className="truncate text-xs text-zinc-600">{doc.id.slice(0, 18)}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDelete(doc.id)}
+                                        disabled={deletingIds.has(doc.id)}
+                                        className="shrink-0 cursor-pointer rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="3 6 5 6 21 6" />
+                                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                            <path d="M10 11v6" />
+                                            <path d="M14 11v6" />
+                                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))
                         )}
                     </div>
 
