@@ -16,7 +16,7 @@ export async function getProviders(): Promise<ProvidersResponse> {
     console.log("Calling /api/v1/providers")
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        'https://ai-api.beakfeather.com/api/v1/providers', {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/providers`, {
             headers: {
                 'X-API-Key': applicationKey
             },

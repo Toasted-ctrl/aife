@@ -10,7 +10,7 @@ export type McpsResponse = {
 export async function getMcps(): Promise<McpsResponse> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        'https://ai-api.beakfeather.com/api/v1/tools/mcp', {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/tools/mcp`, {
             headers: {
                 'X-API-Key': applicationKey
             },

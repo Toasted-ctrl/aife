@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REGISTRY="storage01:5000"
+REGISTRY="${REGISTRY:-your-registry.example.com:5000}"
 IMAGE="aife"
 VERSION_FILE="VERSION"
 

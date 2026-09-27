@@ -13,7 +13,7 @@ export type ProviderConfigurationResponse = {
 export async function getProviderConfiguration(): Promise<ProviderConfigurationResponse> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        'https://ai-api.beakfeather.com/api/v1/providers/configuration', {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/providers/configuration`, {
             headers: {
                 'X-API-Key': applicationKey
             },

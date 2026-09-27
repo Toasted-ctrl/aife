@@ -27,7 +27,7 @@ React 19, TypeScript, Tailwind CSS v4, Vite, React Router.
 
 ```sh
 npm install
-cp .env.example .env   # add your VITE_API_KEY
+cp .env.example .env   # add your VITE_API_KEY and VITE_API_BASE_URL
 npm run dev
 ```
 
@@ -48,11 +48,14 @@ npm run lint
 
 ## Docker
 
-The app ships as an nginx-based container. The `VITE_API_KEY` is injected at runtime via the entrypoint script, so the same image works across environments.
+The app ships as an nginx-based container. Environment variables are injected at runtime via the entrypoint script, so the same image works across environments.
 
 ```sh
 docker build -t aife .
-docker run -p 8080:80 -e VITE_API_KEY=sk_live_... aife
+docker run -p 8080:80 \
+  -e VITE_API_KEY=your-api-key \
+  -e VITE_API_BASE_URL=https://your-api-host.example.com \
+  aife
 ```
 
 A Kubernetes deployment is available under `k8s/`.
@@ -72,3 +75,4 @@ src/
 | Variable | Description |
 |---|---|
 | `VITE_API_KEY` | AIA API key, used for all backend requests |
+| `VITE_API_BASE_URL` | Base URL of the AIA backend (e.g. `https://your-api-host.example.com`) |
