@@ -137,7 +137,7 @@ export function ChatPage() {
     }
 
     return (
-        <div className="flex h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px]">
+        <div className="flex h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px] bg-[position:center]">
             <AppHeader
                 showNewChat={messages.length > 0}
                 onNewChat={() => {

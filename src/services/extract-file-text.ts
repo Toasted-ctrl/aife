@@ -1,10 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist'
 import mammoth from 'mammoth'
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker&inline'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.mjs',
-    import.meta.url
-).toString()
+pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker()
 
 export async function extractFileText(file: File): Promise<string> {
     const extension = file.name.split('.').pop()?.toLowerCase()

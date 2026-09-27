@@ -117,7 +117,7 @@ export function MyDocumentsPage() {
     const canSaveMemory = memoryName.trim().length > 0 && memoryText.trim().length > 0
 
     return (
-        <div className="flex min-h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px]">
+        <div className="flex min-h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px] bg-[position:center]">
             <AppHeader />
             <div className="flex-1 px-4 py-10">
                 <div className="mx-auto max-w-xl">
