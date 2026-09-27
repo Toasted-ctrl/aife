@@ -1,5 +1,6 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
+import { getRoot } from "../services/get-root"
 
 type NavDrawerProps = {
     open: boolean
@@ -42,6 +43,13 @@ const navItems = [
 
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
     const location = useLocation()
+    const [apiVersion, setApiVersion] = useState<string | null>(null)
+
+    useEffect(() => {
+        getRoot()
+            .then((data) => setApiVersion(data.version))
+            .catch(() => setApiVersion(null))
+    }, [])
 
     useEffect(() => {
         function handleKey(e: KeyboardEvent) {
@@ -94,6 +102,11 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                             </Link>
                         )
                     })}
+                </div>
+
+                <div className="border-t border-zinc-800/60 px-4 py-3 space-y-0.5">
+                    <p className="text-xs text-zinc-500">App version: {__APP_VERSION__}</p>
+                    {apiVersion && <p className="text-xs text-zinc-500">API version: {apiVersion}</p>}
                 </div>
             </nav>
         </>

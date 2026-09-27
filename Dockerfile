@@ -6,6 +6,7 @@ COPY . .
 RUN VITE_API_KEY=__VITE_API_KEY_PLACEHOLDER__ VITE_API_BASE_URL=__VITE_API_BASE_URL_PLACEHOLDER__ npm run build
 
 FROM nginx:alpine
+RUN sed -i 's|application/javascript.*js;|application/javascript js mjs;|' /etc/nginx/mime.types
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
