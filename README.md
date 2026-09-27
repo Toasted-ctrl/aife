@@ -21,7 +21,7 @@ React 19, TypeScript, Tailwind CSS v4, Vite, React Router.
 ### Prerequisites
 
 - Node.js 22+
-- An API key for the BeakFeather API
+- An API key for the AIA backend
 
 ### Development
 
@@ -71,4 +71,4 @@ src/
 
 | Variable | Description |
 |---|---|
-| `VITE_API_KEY` | BeakFeather API key, used for all backend requests |
+| `VITE_API_KEY` | AIA API key, used for all backend requests |
