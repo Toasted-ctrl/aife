@@ -12,6 +12,8 @@ export type StreamRequest = {
     prompt: string
     parameters?: ModelParameters
     mcpTools?: string[]
+    userVsFiles?: boolean
+    userVsMemories?: boolean
 }
 
 export type StreamCallbacks = {
@@ -52,7 +54,11 @@ export async function streamAgent(
 
                 },
                 prompt: request.prompt,
-                mcp_tools: request.mcpTools?.length ? request.mcpTools : null,
+                tools: {
+                    user_vs_files: request.userVsFiles ?? false,
+                    user_vs_memories: request.userVsMemories ?? false,
+                    mcp_tools: request.mcpTools?.length ? request.mcpTools : null,
+                },
             }),
         },
     )

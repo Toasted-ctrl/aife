@@ -21,6 +21,8 @@ export function ChatPage() {
     const [model, setModel] = useState("")
     const [mcps, setMcps] = useState<Mcp[]>([])
     const [selectedMcps, setSelectedMcps] = useState<string[]>([])
+    const [userVsFiles, setUserVsFiles] = useState(false)
+    const [userVsMemories, setUserVsMemories] = useState(false)
     const [threadId, setThreadId] = useState<string | null>(null)
     const abortRef = useRef<AbortController | null>(null)
 
@@ -73,6 +75,8 @@ export function ChatPage() {
                     model,
                     prompt: text,
                     mcpTools: mcpToolIds,
+                    userVsFiles,
+                    userVsMemories,
                 },
                 {
                     onChunk: (chunk) => {
@@ -167,6 +171,10 @@ export function ChatPage() {
                         prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
                     )
                 }
+                userVsFiles={userVsFiles}
+                onUserVsFilesToggle={() => setUserVsFiles((v) => !v)}
+                userVsMemories={userVsMemories}
+                onUserVsMemoriesToggle={() => setUserVsMemories((v) => !v)}
             />
         </div>
     )

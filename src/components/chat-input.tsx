@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { ChatModelSelector } from "./chat-model-selector"
-import { McpSelector } from "./mcp-selector"
+import { ToolSelector } from "./tool-selector"
 import type { ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 import type { Mcp } from "../services/get-mcps"
@@ -18,6 +18,10 @@ type ChatInputProps = {
     mcps: Mcp[]
     selectedMcps: string[]
     onMcpToggle: (mcpName: string) => void
+    userVsFiles: boolean
+    onUserVsFilesToggle: () => void
+    userVsMemories: boolean
+    onUserVsMemoriesToggle: () => void
 }
 
 export function ChatInput({
@@ -33,6 +37,10 @@ export function ChatInput({
     mcps,
     selectedMcps,
     onMcpToggle,
+    userVsFiles,
+    onUserVsFilesToggle,
+    userVsMemories,
+    onUserVsMemoriesToggle,
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -86,10 +94,14 @@ export function ChatInput({
                                     Loading models...
                                 </div>
                             )}
-                            <McpSelector
+                            <ToolSelector
                                 mcps={mcps}
                                 selectedMcps={selectedMcps}
-                                onToggle={onMcpToggle}
+                                onMcpToggle={onMcpToggle}
+                                userVsFiles={userVsFiles}
+                                onUserVsFilesToggle={onUserVsFilesToggle}
+                                userVsMemories={userVsMemories}
+                                onUserVsMemoriesToggle={onUserVsMemoriesToggle}
                             />
                         </div>
                         <button
