@@ -16,12 +16,15 @@ export type Message = {
     role: "user" | "assistant"
     content: string
     blocks?: ContentBlock[]
+    // Model (or, later, agent) name that produced an assistant message
+    assistantName?: string
 }
 
 type ChatWindowProps = {
     messages: Message[]
     loading: boolean
     greeting?: string
+    assistantName?: string
 }
 
 function ToolCallBlock({ block }: { block: ToolBlock }) {
@@ -44,7 +47,7 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
     )
 }
 
-export function ChatWindow({ messages, loading, greeting }: ChatWindowProps) {
+export function ChatWindow({ messages, loading, greeting, assistantName }: ChatWindowProps) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -57,9 +60,15 @@ export function ChatWindow({ messages, loading, greeting }: ChatWindowProps) {
                 <p className="text-2xl font-semibold text-zinc-200">
                     {greeting || "Hello!"}
                 </p>
-                <p className="text-sm text-zinc-500">
-                    Select a model below to start chatting.
-                </p>
+                {assistantName ? (
+                    <p className="max-w-[90%] truncate text-sm text-zinc-500">
+                        Chatting with <span className="font-medium text-amber-300/80">{assistantName}</span>
+                    </p>
+                ) : (
+                    <p className="text-sm text-zinc-500">
+                        Select a model below to start chatting.
+                    </p>
+                )}
             </div>
         )
     }
@@ -80,6 +89,11 @@ export function ChatWindow({ messages, loading, greeting }: ChatWindowProps) {
                                 A
                             </div>
                             <div className="min-w-0 max-w-none pt-0.5">
+                                {msg.assistantName && (
+                                    <div className="mb-1 truncate text-[11px] font-medium text-zinc-500">
+                                        {msg.assistantName}
+                                    </div>
+                                )}
                                 {msg.blocks?.length ? (
                                     msg.blocks.map((block, j) =>
                                         block.type === "text" ? (

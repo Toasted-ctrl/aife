@@ -41,12 +41,13 @@ export function ChatModelSelector({
     const hasSelection = selectedProvider && selectedModel
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative min-w-0">
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
+                title={hasSelection ? `${selectedProvider} / ${selectedModel}` : undefined}
                 className={`
-                    flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition
+                    flex max-w-full cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition sm:max-w-72
                     ${hasSelection
                         ? "bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
                         : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
@@ -57,12 +58,9 @@ export function ChatModelSelector({
                     <path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z" />
                 </svg>
                 {hasSelection ? (
-                    <span>
-                        <span className="text-zinc-500">{selectedProvider} / </span>
-                        {selectedModel}
-                    </span>
+                    <span className="min-w-0 truncate">{selectedModel}</span>
                 ) : (
-                    "Select model / agent"
+                    <span className="min-w-0 truncate">Select model / agent</span>
                 )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5 shrink-0 opacity-40">
                     <path d="M6 9l6 6 6-6" />

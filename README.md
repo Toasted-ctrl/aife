@@ -1,16 +1,17 @@
 # AIFE
 
-A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ctrl/ai_api) API. Supports multiple AI providers and models, MCP tool calling, and a personal vector store for files and memories.
+A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ctrl/ai_api) API. Supports multiple AI providers and models, MCP tool calling, web search, and a personal vector store for files and memories.
 
 ## Features
 
 - **Multi-provider chat** — stream responses from configurable AI providers and models with adjustable parameters (temperature, top-k, top-p).
 - **MCP tool use** — select and invoke MCP tools during conversations, with inline display of tool calls and results.
+- **Web search** — opt-in toggle that lets the agent search the internet; off by default and clearly highlighted when enabled.
 - **Vector store** — upload documents (PDF, DOCX, TXT, MD, CSV) or save text memories to a per-user vector store for retrieval-augmented generation.
 - **Google login** — authentication via Google OAuth.
 - **Settings** — manage provider API keys and model preferences.
 
-![MCP tool calling](images/MCP.png)
+![MCP tool calling](images/Tools.png)
 
 ## Tech stack
 

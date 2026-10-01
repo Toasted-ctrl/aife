@@ -14,6 +14,7 @@ export type StreamRequest = {
     mcpTools?: string[]
     userVsFiles?: boolean
     userVsMemories?: boolean
+    webSearch?: boolean
 }
 
 export type StreamCallbacks = {
@@ -57,6 +58,7 @@ export async function streamAgent(
                 tools: {
                     user_vs_files: request.userVsFiles ?? false,
                     user_vs_memories: request.userVsMemories ?? false,
+                    web_search: request.webSearch ?? false,
                     mcp_tools: request.mcpTools?.length ? request.mcpTools : null,
                 },
             }),

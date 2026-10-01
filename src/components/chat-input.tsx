@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react"
 import { ChatModelSelector } from "./chat-model-selector"
 import { ToolSelector } from "./tool-selector"
+import { WebSearchToggle } from "./web-search-toggle"
+import { ActiveToolsBar, type ActiveTool } from "./active-tools-bar"
 import type { ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 import type { Mcp } from "../services/get-mcps"
@@ -22,6 +24,8 @@ type ChatInputProps = {
     onUserVsFilesToggle: () => void
     userVsMemories: boolean
     onUserVsMemoriesToggle: () => void
+    webSearch: boolean
+    onWebSearchToggle: () => void
 }
 
 export function ChatInput({
@@ -41,6 +45,8 @@ export function ChatInput({
     onUserVsFilesToggle,
     userVsMemories,
     onUserVsMemoriesToggle,
+    webSearch,
+    onWebSearchToggle,
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -56,17 +62,34 @@ export function ChatInput({
         el.style.height = Math.min(el.scrollHeight, 200) + "px"
     }
 
-    function handleKeyDown(e: React.KeyboardEvent) {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault()
-            onSend()
+    const canSend = input.trim() && !loading && !!model
+
+    function handleSend() {
+        if (!canSend) return
+        onSend()
+        // Dismiss the on-screen keyboard on touch devices; keep focus on desktop
+        if (window.matchMedia("(pointer: coarse)").matches) {
+            textareaRef.current?.blur()
         }
     }
 
-    const canSend = input.trim() && !loading && !!model
+    function handleKeyDown(e: React.KeyboardEvent) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault()
+            handleSend()
+        }
+    }
+
+    const activeTools: ActiveTool[] = [
+        ...(userVsFiles ? [{ key: "user_vs_files", label: "User Files", onRemove: onUserVsFilesToggle }] : []),
+        ...(userVsMemories ? [{ key: "user_vs_memories", label: "User Memories", onRemove: onUserVsMemoriesToggle }] : []),
+        ...selectedMcps.map((name) => ({ key: `mcp:${name}`, label: name, onRemove: () => onMcpToggle(name) })),
+        ...(webSearch ? [{ key: "web_search", label: "Web search", onRemove: onWebSearchToggle, variant: "web" as const }] : []),
+    ]
 
     return (
-        <div className="shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+        <div className="relative shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+            <ActiveToolsBar tools={activeTools} />
             <div className="mx-auto max-w-2xl">
                 <div className="rounded-2xl border border-zinc-700/50 bg-zinc-900 shadow-lg shadow-amber-950/10 transition-colors focus-within:border-amber-500/40 focus-within:shadow-amber-500/5">
                     <textarea
@@ -79,7 +102,7 @@ export function ChatInput({
                         className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-base text-zinc-100 placeholder-zinc-500 outline-none sm:text-sm"
                     />
                     <div className="flex items-center justify-between px-2 pb-2">
-                        <div className="flex items-center gap-1">
+                        <div className="flex min-w-0 items-center gap-1">
                             {offerings ? (
                                 <ChatModelSelector
                                     offerings={offerings}
@@ -103,9 +126,13 @@ export function ChatInput({
                                 userVsMemories={userVsMemories}
                                 onUserVsMemoriesToggle={onUserVsMemoriesToggle}
                             />
+                            <WebSearchToggle
+                                enabled={webSearch}
+                                onToggle={onWebSearchToggle}
+                            />
                         </div>
                         <button
-                            onClick={onSend}
+                            onClick={handleSend}
                             disabled={!canSend}
                             className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-amber-600 text-white transition-all hover:bg-amber-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                         >

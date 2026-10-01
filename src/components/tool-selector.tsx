@@ -38,12 +38,12 @@ export function ToolSelector({
     const count = selectedMcps.length + (userVsFiles ? 1 : 0) + (userVsMemories ? 1 : 0)
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative shrink-0">
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 className={`
-                    flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition
+                    flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition
                     ${count > 0
                         ? "bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
                         : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"

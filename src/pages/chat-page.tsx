@@ -23,6 +23,7 @@ export function ChatPage() {
     const [selectedMcps, setSelectedMcps] = useState<string[]>([])
     const [userVsFiles, setUserVsFiles] = useState(false)
     const [userVsMemories, setUserVsMemories] = useState(false)
+    const [webSearch, setWebSearch] = useState(false)
     const [threadId, setThreadId] = useState<string | null>(null)
     const abortRef = useRef<AbortController | null>(null)
 
@@ -47,7 +48,7 @@ export function ChatPage() {
         setInput("")
         setLoading(true)
 
-        setMessages((prev) => [...prev, { role: "assistant", content: "", blocks: [{ type: "text", text: "" }] }])
+        setMessages((prev) => [...prev, { role: "assistant", content: "", blocks: [{ type: "text", text: "" }], assistantName: model }])
 
         const controller = new AbortController()
         abortRef.current = controller
@@ -77,6 +78,7 @@ export function ChatPage() {
                     mcpTools: mcpToolIds,
                     userVsFiles,
                     userVsMemories,
+                    webSearch,
                 },
                 {
                     onChunk: (chunk) => {
@@ -152,6 +154,7 @@ export function ChatPage() {
                 messages={messages}
                 loading={loading}
                 greeting={user ? `Hi ${user.first_name}!` : undefined}
+                assistantName={model || undefined}
             />
 
             <ChatInput
@@ -175,6 +178,8 @@ export function ChatPage() {
                 onUserVsFilesToggle={() => setUserVsFiles((v) => !v)}
                 userVsMemories={userVsMemories}
                 onUserVsMemoriesToggle={() => setUserVsMemories((v) => !v)}
+                webSearch={webSearch}
+                onWebSearchToggle={() => setWebSearch((v) => !v)}
             />
         </div>
     )
