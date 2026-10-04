@@ -47,7 +47,7 @@ export function ChatModelSelector({
                 onClick={() => setOpen((v) => !v)}
                 title={hasSelection ? `${selectedProvider} / ${selectedModel}` : undefined}
                 className={`
-                    flex max-w-full cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition sm:max-w-72
+                    flex max-w-44 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition sm:max-w-64
                     ${hasSelection
                         ? "bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
                         : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
@@ -60,7 +60,7 @@ export function ChatModelSelector({
                 {hasSelection ? (
                     <span className="min-w-0 truncate">{selectedModel}</span>
                 ) : (
-                    <span className="min-w-0 truncate">Select model / agent</span>
+                    <span className="min-w-0 truncate">Model / agent</span>
                 )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5 shrink-0 opacity-40">
                     <path d="M6 9l6 6 6-6" />
