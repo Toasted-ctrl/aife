@@ -9,6 +9,41 @@ import { getMcps, type Mcp } from "../services/get-mcps"
 import { getUser, type User } from "../services/get-user"
 import { streamAgent } from "../services/stream-agent"
 
+const GREETINGS: ((name: string) => string)[] = [
+    (name) => `Hi ${name}!`,
+    (name) => `Hello ${name}!`,
+    (name) => `Welcome back, ${name}!`,
+    (name) => `Good to see you, ${name}!`,
+    (name) => `Hey ${name}, what's on your mind?`,
+    (name) => `Hallo ${name}!`,
+    (name) => `Hoi ${name}!`,
+    (name) => `Hola ${name}!`,
+    (name) => `Bonjour ${name}!`,
+    (name) => `Ciao ${name}!`,
+    (name) => `Olá ${name}!`,
+    (name) => `Hej ${name}!`,
+    (name) => `Moin ${name}!`,
+    (name) => `Salut ${name}!`,
+    (name) => `Kia ora ${name}!`,
+    (name) => `Aloha ${name}!`,
+    (name) => `Merhaba ${name}!`,
+    (name) => `Cześć ${name}!`,
+    (name) => `Привет, ${name}!`,
+    (name) => `Γειά σου ${name}!`,
+    (name) => `こんにちは、${name}さん!`,
+    (name) => `안녕하세요, ${name}님!`,
+    (name) => `你好, ${name}!`,
+    (name) => `नमस्ते ${name}!`,
+    (name) => `مرحبا ${name}!`,
+    (name) => `שלום ${name}!`,
+    (name) => `Jambo ${name}!`,
+    (name) => `Sawubona ${name}!`,
+]
+
+function randomGreeting() {
+    return GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
+}
+
 export function ChatPage() {
     const navigate = useNavigate()
     const [user, setUser] = useState<User | null>(null)
@@ -25,6 +60,7 @@ export function ChatPage() {
     const [userVsMemories, setUserVsMemories] = useState(false)
     const [webSearch, setWebSearch] = useState(false)
     const [threadId, setThreadId] = useState<string | null>(null)
+    const [greeting, setGreeting] = useState(randomGreeting)
     const abortRef = useRef<AbortController | null>(null)
 
     useEffect(() => {
@@ -147,13 +183,14 @@ export function ChatPage() {
                     setMessages([])
                     setThreadId(null)
                     setLoading(false)
+                    setGreeting(randomGreeting)
                 }}
             />
 
             <ChatWindow
                 messages={messages}
                 loading={loading}
-                greeting={user ? `Hi ${user.first_name}!` : undefined}
+                greeting={user ? greeting(user.first_name) : undefined}
                 assistantName={model || undefined}
             />
 

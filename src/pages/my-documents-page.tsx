@@ -2,19 +2,47 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/app-header'
 import { FileUploadButton } from '../components/file-upload-button'
+import { SkillForm } from '../components/skill-form'
+import { addSkill, type SkillPayload } from '../services/add-skill'
 import { addToVectorStore } from '../services/add-to-vector-store'
 import { deleteUserDocument } from '../services/delete-user-document'
 import { getUserDocuments, type UserDocument } from '../services/get-user-documents'
 import { getUser } from '../services/get-user'
 
+type Tab = 'files' | 'memories' | 'skills'
+
 type UploadEntry = {
     name: string
-    kind: 'file' | 'memory'
+    kind: Tab
     status: 'uploading' | 'done' | 'error'
     error?: string
 }
 
-type Tab = 'files' | 'memories'
+const TABS: Record<Tab, { label: string; singular: string; scope: string }> = {
+    files: { label: 'Files', singular: 'File', scope: 'user_vs_files' },
+    memories: { label: 'Memories', singular: 'Memory', scope: 'user_vs_memories' },
+    skills: { label: 'Skills', singular: 'Skill', scope: 'user_vs_skills' },
+}
+
+function KindIcon({ kind }: { kind: Tab }) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
+            {kind === 'files' ? (
+                <>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </>
+            ) : kind === 'memories' ? (
+                <>
+                    <path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                </>
+            ) : (
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            )}
+        </svg>
+    )
+}
 
 export function MyDocumentsPage() {
     const navigate = useNavigate()
@@ -34,9 +62,8 @@ export function MyDocumentsPage() {
     }, [navigate])
 
     useEffect(() => {
-        const scope = tab === 'files' ? 'user_vs_files' : 'user_vs_memories'
         setDocumentsLoading(true)
-        getUserDocuments(scope)
+        getUserDocuments(TABS[tab].scope)
             .then(res => setStoredDocuments(res.documents))
             .catch(() => setStoredDocuments([]))
             .finally(() => setDocumentsLoading(false))
@@ -59,14 +86,13 @@ export function MyDocumentsPage() {
     }
 
     function refreshDocuments() {
-        const scope = tab === 'files' ? 'user_vs_files' : 'user_vs_memories'
-        getUserDocuments(scope)
+        getUserDocuments(TABS[tab].scope)
             .then(res => setStoredDocuments(res.documents))
             .catch(() => {})
     }
 
     async function handleFileProcessed(file: { name: string; text: string }) {
-        const entry: UploadEntry = { name: file.name, kind: 'file', status: 'uploading' }
+        const entry: UploadEntry = { name: file.name, kind: 'files', status: 'uploading' }
         setUploads(prev => [entry, ...prev])
 
         try {
@@ -90,7 +116,7 @@ export function MyDocumentsPage() {
         const text = memoryText.trim()
         if (!name || !text) return
 
-        const entry: UploadEntry = { name, kind: 'memory', status: 'uploading' }
+        const entry: UploadEntry = { name, kind: 'memories', status: 'uploading' }
         setUploads(prev => [entry, ...prev])
         setMemorySaving(true)
 
@@ -114,6 +140,28 @@ export function MyDocumentsPage() {
         }
     }
 
+    async function handleSkillSave(skill: SkillPayload): Promise<boolean> {
+        const entry: UploadEntry = { name: skill.name, kind: 'skills', status: 'uploading' }
+        setUploads(prev => [entry, ...prev])
+
+        try {
+            await addSkill(TABS.skills.scope, skill)
+            setUploads(prev =>
+                prev.map(u => u === entry ? { ...u, status: 'done' } : u)
+            )
+            refreshDocuments()
+            return true
+        } catch (err) {
+            setUploads(prev =>
+                prev.map(u => u === entry
+                    ? { ...u, status: 'error', error: err instanceof Error ? err.message : 'Save failed' }
+                    : u
+                )
+            )
+            return false
+        }
+    }
+
     const canSaveMemory = memoryName.trim().length > 0 && memoryText.trim().length > 0
 
     return (
@@ -123,30 +171,23 @@ export function MyDocumentsPage() {
                 <div className="mx-auto max-w-xl">
                     <h1 className="text-2xl font-bold tracking-tight text-white">My Documents</h1>
                     <p className="mt-2 text-sm text-zinc-400">
-                        Upload files or save memories to make them available to AI via the vector store.
+                        Upload files, save memories or create skills to make them available to AI.
                     </p>
 
                     <div className="mt-8 flex gap-1 rounded-lg bg-zinc-900 p-1 border border-zinc-800">
-                        <button
-                            onClick={() => setTab('files')}
-                            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-                                tab === 'files'
-                                    ? 'bg-zinc-800 text-white'
-                                    : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                        >
-                            Files
-                        </button>
-                        <button
-                            onClick={() => setTab('memories')}
-                            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-                                tab === 'memories'
-                                    ? 'bg-zinc-800 text-white'
-                                    : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                        >
-                            Memories
-                        </button>
+                        {(Object.keys(TABS) as Tab[]).map(key => (
+                            <button
+                                key={key}
+                                onClick={() => setTab(key)}
+                                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
+                                    tab === key
+                                        ? 'bg-zinc-800 text-white'
+                                        : 'text-zinc-400 hover:text-zinc-200'
+                                }`}
+                            >
+                                {TABS[key].label}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
@@ -160,6 +201,8 @@ export function MyDocumentsPage() {
                                     onFileProcessed={handleFileProcessed}
                                 />
                             </div>
+                        ) : tab === 'skills' ? (
+                            <SkillForm onSave={handleSkillSave} />
                         ) : (
                             <div className="space-y-4">
                                 <div>
@@ -206,13 +249,13 @@ export function MyDocumentsPage() {
 
                     <div className="mt-6 space-y-2">
                         <h2 className="text-sm font-medium text-zinc-400">
-                            Stored {tab === 'files' ? 'files' : 'memories'}
+                            Stored {TABS[tab].label.toLowerCase()}
                         </h2>
                         {documentsLoading ? (
                             <p className="text-xs text-zinc-500">Loading…</p>
                         ) : storedDocuments.length === 0 ? (
                             <p className="text-xs text-zinc-500">
-                                No {tab === 'files' ? 'files' : 'memories'} stored yet.
+                                No {TABS[tab].label.toLowerCase()} stored yet.
                             </p>
                         ) : (
                             storedDocuments.map(doc => (
@@ -220,17 +263,7 @@ export function MyDocumentsPage() {
                                     key={doc.id}
                                     className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
                                 >
-                                    {tab === 'files' ? (
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                            <polyline points="14 2 14 8 20 8" />
-                                        </svg>
-                                    ) : (
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
-                                            <path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z" />
-                                            <circle cx="12" cy="9" r="2.5" />
-                                        </svg>
-                                    )}
+                                    <KindIcon kind={tab} />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm text-white">{doc.name}</p>
                                         <p className="truncate text-xs text-zinc-600">{doc.id.slice(0, 18)}</p>
@@ -262,21 +295,11 @@ export function MyDocumentsPage() {
                                     className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
-                                        {upload.kind === 'file' ? (
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                                <polyline points="14 2 14 8 20 8" />
-                                            </svg>
-                                        ) : (
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
-                                                <path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z" />
-                                                <circle cx="12" cy="9" r="2.5" />
-                                            </svg>
-                                        )}
+                                        <KindIcon kind={upload.kind} />
                                         <div className="min-w-0">
                                             <p className="truncate text-sm text-white">{upload.name}</p>
                                             <p className="text-xs text-zinc-500">
-                                                {upload.kind === 'file' ? 'File' : 'Memory'}
+                                                {TABS[upload.kind].singular}
                                             </p>
                                         </div>
                                     </div>
