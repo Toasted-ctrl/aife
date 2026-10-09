@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../components/app-header'
 import { FileUploadButton } from '../components/file-upload-button'
+import { SkillDetailsDialog } from '../components/skill-details-dialog'
 import { SkillForm } from '../components/skill-form'
 import { addSkill, type SkillPayload } from '../services/add-skill'
 import { addToVectorStore } from '../services/add-to-vector-store'
@@ -18,11 +19,14 @@ type UploadEntry = {
     error?: string
 }
 
-const TABS: Record<Tab, { label: string; singular: string; scope: string }> = {
-    files: { label: 'Files', singular: 'File', scope: 'user_vs_files' },
-    memories: { label: 'Memories', singular: 'Memory', scope: 'user_vs_memories' },
-    skills: { label: 'Skills', singular: 'Skill', scope: 'user_vs_skills' },
+const TABS: Record<Tab, { label: string; singular: string; scope: string; addLabel: string }> = {
+    files: { label: 'Files', singular: 'File', scope: 'user_vs_files', addLabel: 'Upload a file' },
+    memories: { label: 'Memories', singular: 'Memory', scope: 'user_vs_memories', addLabel: 'Add a memory' },
+    skills: { label: 'Skills', singular: 'Skill', scope: 'user_vs_skills', addLabel: 'Create a skill' },
 }
+
+// Matches Tailwind's `sm` breakpoint; the add panel starts expanded on wider screens only
+const WIDE_SCREEN_QUERY = '(min-width: 640px)'
 
 function KindIcon({ kind }: { kind: Tab }) {
     return (
@@ -46,8 +50,16 @@ function KindIcon({ kind }: { kind: Tab }) {
 
 export function MyDocumentsPage() {
     const navigate = useNavigate()
-    const [tab, setTab] = useState<Tab>('files')
+    // The active tab lives in the URL (?tab=skills) so it survives a refresh
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tabParam = searchParams.get('tab')
+    const tab: Tab = tabParam !== null && Object.hasOwn(TABS, tabParam) ? tabParam as Tab : 'files'
+
+    function setTab(next: Tab) {
+        setSearchParams({ tab: next }, { replace: true })
+    }
     const [uploads, setUploads] = useState<UploadEntry[]>([])
+    const [addPanelOpen, setAddPanelOpen] = useState(() => window.matchMedia(WIDE_SCREEN_QUERY).matches)
 
     const [memoryName, setMemoryName] = useState('')
     const [memoryText, setMemoryText] = useState('')
@@ -56,6 +68,8 @@ export function MyDocumentsPage() {
     const [storedDocuments, setStoredDocuments] = useState<UserDocument[]>([])
     const [documentsLoading, setDocumentsLoading] = useState(false)
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+    const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null)
+    const closeSkillDetails = useCallback(() => setSelectedSkillId(null), [])
 
     useEffect(() => {
         getUser().catch(() => navigate('/login', { replace: true }))
@@ -127,6 +141,7 @@ export function MyDocumentsPage() {
             )
             setMemoryName('')
             setMemoryText('')
+            setAddPanelOpen(false)
             refreshDocuments()
         } catch (err) {
             setUploads(prev =>
@@ -149,6 +164,7 @@ export function MyDocumentsPage() {
             setUploads(prev =>
                 prev.map(u => u === entry ? { ...u, status: 'done' } : u)
             )
+            setAddPanelOpen(false)
             refreshDocuments()
             return true
         } catch (err) {
@@ -190,61 +206,80 @@ export function MyDocumentsPage() {
                         ))}
                     </div>
 
-                    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                        {tab === 'files' ? (
-                            <div>
-                                <p className="mb-4 text-sm text-zinc-400">
-                                    Upload a document file to index its contents.
-                                </p>
-                                <FileUploadButton
-                                    target="vector-store"
-                                    onFileProcessed={handleFileProcessed}
-                                />
-                            </div>
-                        ) : tab === 'skills' ? (
-                            <SkillForm onSave={handleSkillSave} />
-                        ) : (
-                            <div className="space-y-4">
+                    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900">
+                        <button
+                            onClick={() => setAddPanelOpen(open => !open)}
+                            aria-expanded={addPanelOpen}
+                            aria-controls="add-panel"
+                            className="flex w-full cursor-pointer items-center justify-between gap-3 px-6 py-4 text-sm font-medium text-zinc-300 transition hover:text-white"
+                        >
+                            <span className="flex items-center gap-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                                {TABS[tab].addLabel}
+                            </span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-zinc-500 transition-transform duration-200 ${addPanelOpen ? 'rotate-180' : ''}`}>
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
+                        {/* Hidden rather than unmounted so in-progress input survives collapsing */}
+                        <div id="add-panel" className={`border-t border-zinc-800/60 px-6 pb-6 pt-4 ${addPanelOpen ? '' : 'hidden'}`}>
+                            {tab === 'files' ? (
                                 <div>
-                                    <label htmlFor="memory-name" className="block text-sm font-medium text-zinc-300">
-                                        Document name
-                                    </label>
-                                    <input
-                                        id="memory-name"
-                                        type="text"
-                                        value={memoryName}
-                                        onChange={e => setMemoryName(e.target.value)}
-                                        placeholder="e.g. Project guidelines"
-                                        className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
+                                    <p className="mb-4 text-sm text-zinc-400">
+                                        Upload a document file to index its contents.
+                                    </p>
+                                    <FileUploadButton
+                                        target="vector-store"
+                                        onFileProcessed={handleFileProcessed}
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="memory-text" className="block text-sm font-medium text-zinc-300">
-                                        Content
-                                    </label>
-                                    <textarea
-                                        id="memory-text"
-                                        value={memoryText}
-                                        onChange={e => setMemoryText(e.target.value)}
-                                        placeholder="Type the memory content here…"
-                                        rows={6}
-                                        className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 resize-y"
-                                    />
+                            ) : tab === 'skills' ? (
+                                <SkillForm onSave={handleSkillSave} />
+                            ) : (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="memory-name" className="block text-sm font-medium text-zinc-300">
+                                            Document name
+                                        </label>
+                                        <input
+                                            id="memory-name"
+                                            type="text"
+                                            value={memoryName}
+                                            onChange={e => setMemoryName(e.target.value)}
+                                            placeholder="e.g. Project guidelines"
+                                            className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="memory-text" className="block text-sm font-medium text-zinc-300">
+                                            Content
+                                        </label>
+                                        <textarea
+                                            id="memory-text"
+                                            value={memoryText}
+                                            onChange={e => setMemoryText(e.target.value)}
+                                            placeholder="Type the memory content here…"
+                                            rows={6}
+                                            className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 resize-y"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleMemorySave}
+                                        disabled={!canSaveMemory || memorySaving}
+                                        className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800/60 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                            <polyline points="17 21 17 13 7 13 7 21" />
+                                            <polyline points="7 3 7 8 15 8" />
+                                        </svg>
+                                        {memorySaving ? 'Saving…' : 'Save memory'}
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={handleMemorySave}
-                                    disabled={!canSaveMemory || memorySaving}
-                                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800/60 hover:text-white disabled:pointer-events-none disabled:opacity-50"
-                                >
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                        <polyline points="17 21 17 13 7 13 7 21" />
-                                        <polyline points="7 3 7 8 15 8" />
-                                    </svg>
-                                    {memorySaving ? 'Saving…' : 'Save memory'}
-                                </button>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
                     <div className="mt-6 space-y-2">
@@ -263,11 +298,26 @@ export function MyDocumentsPage() {
                                     key={doc.id}
                                     className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
                                 >
-                                    <KindIcon kind={tab} />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm text-white">{doc.name}</p>
-                                        <p className="truncate text-xs text-zinc-600">{doc.id.slice(0, 18)}</p>
-                                    </div>
+                                    {tab === 'skills' ? (
+                                        <button
+                                            onClick={() => setSelectedSkillId(doc.id)}
+                                            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                                        >
+                                            <KindIcon kind={tab} />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm text-white group-hover:text-amber-300">{doc.name}</p>
+                                                <p className="truncate text-xs text-zinc-600">{doc.id.slice(0, 18)}</p>
+                                            </div>
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <KindIcon kind={tab} />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm text-white">{doc.name}</p>
+                                                <p className="truncate text-xs text-zinc-600">{doc.id.slice(0, 18)}</p>
+                                            </div>
+                                        </>
+                                    )}
                                     <button
                                         onClick={() => handleDelete(doc.id)}
                                         disabled={deletingIds.has(doc.id)}
@@ -318,6 +368,15 @@ export function MyDocumentsPage() {
                     )}
                 </div>
             </div>
+
+            {selectedSkillId && (
+                <SkillDetailsDialog
+                    key={selectedSkillId}
+                    skillId={selectedSkillId}
+                    scope={TABS.skills.scope}
+                    onClose={closeSkillDetails}
+                />
+            )}
         </div>
     )
 }
