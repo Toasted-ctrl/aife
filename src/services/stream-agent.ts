@@ -1,7 +1,8 @@
+// null means "use the provider default"
 export type ModelParameters = {
-    temperature: number
-    top_k: number
-    top_p: number
+    temperature: number | null
+    top_k: number | null
+    top_p: number | null
 }
 
 export type StreamRequest = {
@@ -51,8 +52,7 @@ export async function streamAgent(
                 parameters: {
                     temperature: request.parameters?.temperature ?? null,
                     top_k: request.parameters?.top_k ?? null,
-                    top_p: request.parameters?.top_p ?? null
-
+                    top_p: request.parameters?.top_p ?? null,
                 },
                 prompt: request.prompt,
                 tools: {

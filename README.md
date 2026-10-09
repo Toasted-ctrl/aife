@@ -8,10 +8,11 @@ A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ct
 - **MCP tool use** — select and invoke MCP tools during conversations, with inline display of tool calls and results.
 - **Web search** — opt-in toggle that lets the agent search the internet; off by default and clearly highlighted when enabled.
 - **Vector store** — upload documents (PDF, DOCX, TXT, MD, CSV) or save text memories to a per-user vector store for retrieval-augmented generation.
+- **Skills** — Add skills for your models/agents to use. Skills descriptions are stored in and discoverable through vector search.
 - **Google login** — authentication via Google OAuth.
 - **Settings** — manage provider API keys and model preferences.
 
-![MCP tool calling](images/Tools.png)
+![Chat Sampling](images/CHAT_SAMPLING.png)
 
 ## Tech stack
 

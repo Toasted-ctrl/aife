@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react"
 import { ChatModelSelector } from "./chat-model-selector"
-import { ToolSelector } from "./tool-selector"
-import { WebSearchToggle } from "./web-search-toggle"
-import { ActiveToolsBar, type ActiveTool } from "./active-tools-bar"
+import { ChatToolbar } from "./chat-toolbar"
 import type { ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 import type { Mcp } from "../services/get-mcps"
+import type { ModelParameters } from "../services/stream-agent"
 
 type ChatInputProps = {
     input: string
@@ -17,6 +16,7 @@ type ChatInputProps = {
     provider: string
     model: string
     onModelSelect: (provider: string, model: string) => void
+    agentName?: string
     mcps: Mcp[]
     selectedMcps: string[]
     onMcpToggle: (mcpName: string) => void
@@ -26,6 +26,8 @@ type ChatInputProps = {
     onUserVsMemoriesToggle: () => void
     webSearch: boolean
     onWebSearchToggle: () => void
+    parameters: ModelParameters
+    onParametersChange: (parameters: ModelParameters) => void
 }
 
 export function ChatInput({
@@ -38,6 +40,7 @@ export function ChatInput({
     provider,
     model,
     onModelSelect,
+    agentName,
     mcps,
     selectedMcps,
     onMcpToggle,
@@ -47,6 +50,8 @@ export function ChatInput({
     onUserVsMemoriesToggle,
     webSearch,
     onWebSearchToggle,
+    parameters,
+    onParametersChange,
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -80,16 +85,22 @@ export function ChatInput({
         }
     }
 
-    const activeTools: ActiveTool[] = [
-        ...(userVsFiles ? [{ key: "user_vs_files", label: "User Files", onRemove: onUserVsFilesToggle }] : []),
-        ...(userVsMemories ? [{ key: "user_vs_memories", label: "User Memories", onRemove: onUserVsMemoriesToggle }] : []),
-        ...selectedMcps.map((name) => ({ key: `mcp:${name}`, label: name, onRemove: () => onMcpToggle(name) })),
-        ...(webSearch ? [{ key: "web_search", label: "Web search", onRemove: onWebSearchToggle, variant: "web" as const }] : []),
-    ]
-
     return (
-        <div className="relative shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
-            <ActiveToolsBar tools={activeTools} />
+        <div className="shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+            <ChatToolbar
+                agentName={agentName}
+                mcps={mcps}
+                selectedMcps={selectedMcps}
+                onMcpToggle={onMcpToggle}
+                userVsFiles={userVsFiles}
+                onUserVsFilesToggle={onUserVsFilesToggle}
+                userVsMemories={userVsMemories}
+                onUserVsMemoriesToggle={onUserVsMemoriesToggle}
+                webSearch={webSearch}
+                onWebSearchToggle={onWebSearchToggle}
+                parameters={parameters}
+                onParametersChange={onParametersChange}
+            />
             <div className="mx-auto max-w-2xl">
                 <div className="rounded-2xl border border-zinc-700/50 bg-zinc-900 shadow-lg shadow-amber-950/10 transition-colors focus-within:border-amber-500/40 focus-within:shadow-amber-500/5">
                     <textarea
@@ -117,19 +128,6 @@ export function ChatInput({
                                     Loading models...
                                 </div>
                             )}
-                            <ToolSelector
-                                mcps={mcps}
-                                selectedMcps={selectedMcps}
-                                onMcpToggle={onMcpToggle}
-                                userVsFiles={userVsFiles}
-                                onUserVsFilesToggle={onUserVsFilesToggle}
-                                userVsMemories={userVsMemories}
-                                onUserVsMemoriesToggle={onUserVsMemoriesToggle}
-                            />
-                            <WebSearchToggle
-                                enabled={webSearch}
-                                onToggle={onWebSearchToggle}
-                            />
                         </div>
                         <button
                             onClick={handleSend}

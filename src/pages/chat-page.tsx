@@ -7,7 +7,7 @@ import { getProviderModels, type ProvidersOffering } from "../services/get-model
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
 import { getMcps, type Mcp } from "../services/get-mcps"
 import { getUser, type User } from "../services/get-user"
-import { streamAgent } from "../services/stream-agent"
+import { streamAgent, type ModelParameters } from "../services/stream-agent"
 
 const GREETINGS: ((name: string) => string)[] = [
     (name) => `Hi ${name}!`,
@@ -59,6 +59,7 @@ export function ChatPage() {
     const [userVsFiles, setUserVsFiles] = useState(false)
     const [userVsMemories, setUserVsMemories] = useState(false)
     const [webSearch, setWebSearch] = useState(false)
+    const [parameters, setParameters] = useState<ModelParameters>({ temperature: null, top_p: null, top_k: null })
     const [threadId, setThreadId] = useState<string | null>(null)
     const [greeting, setGreeting] = useState(randomGreeting)
     const abortRef = useRef<AbortController | null>(null)
@@ -111,6 +112,7 @@ export function ChatPage() {
                     provider,
                     model,
                     prompt: text,
+                    parameters,
                     mcpTools: mcpToolIds,
                     userVsFiles,
                     userVsMemories,
@@ -217,6 +219,8 @@ export function ChatPage() {
                 onUserVsMemoriesToggle={() => setUserVsMemories((v) => !v)}
                 webSearch={webSearch}
                 onWebSearchToggle={() => setWebSearch((v) => !v)}
+                parameters={parameters}
+                onParametersChange={setParameters}
             />
         </div>
     )
