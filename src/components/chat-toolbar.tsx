@@ -3,6 +3,7 @@ import { WebSearchToggle } from "./web-search-toggle"
 import { SamplingSelector } from "./sampling-selector"
 import type { Mcp } from "../services/get-mcps"
 import type { ModelParameters } from "../services/stream-agent"
+import type { ModelSamplingSupport } from "../services/get-model-sampling"
 
 type ChatToolbarProps = {
     // When an agent is selected its own configuration applies, so the toolbar is replaced by a notice
@@ -18,6 +19,7 @@ type ChatToolbarProps = {
     onWebSearchToggle: () => void
     parameters: ModelParameters
     onParametersChange: (parameters: ModelParameters) => void
+    samplingSupport: ModelSamplingSupport | null
 }
 
 export function ChatToolbar({
@@ -33,6 +35,7 @@ export function ChatToolbar({
     onWebSearchToggle,
     parameters,
     onParametersChange,
+    samplingSupport,
 }: ChatToolbarProps) {
     // Fixed height so switching between model and agent never shifts the layout
     return (
@@ -66,6 +69,7 @@ export function ChatToolbar({
                         <SamplingSelector
                             parameters={parameters}
                             onChange={onParametersChange}
+                            supported={samplingSupport}
                         />
                     </div>
                 </>

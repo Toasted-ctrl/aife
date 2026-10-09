@@ -6,6 +6,7 @@ import { ChatWindow, type Message, type ContentBlock } from "../components/chat-
 import { getProviderModels, type ProvidersOffering } from "../services/get-models"
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
 import { getMcps, type Mcp } from "../services/get-mcps"
+import { getModelSampling, type ModelSamplingSupport } from "../services/get-model-sampling"
 import { getUser, type User } from "../services/get-user"
 import { streamAgent, type ModelParameters } from "../services/stream-agent"
 
@@ -60,6 +61,7 @@ export function ChatPage() {
     const [userVsMemories, setUserVsMemories] = useState(false)
     const [webSearch, setWebSearch] = useState(false)
     const [parameters, setParameters] = useState<ModelParameters>({ temperature: null, top_p: null, top_k: null })
+    const [samplingSupport, setSamplingSupport] = useState<ModelSamplingSupport | null>(null)
     const [threadId, setThreadId] = useState<string | null>(null)
     const [greeting, setGreeting] = useState(randomGreeting)
     const abortRef = useRef<AbortController | null>(null)
@@ -75,6 +77,26 @@ export function ChatPage() {
         getProviderConfiguration().then((res) => setProviderConfigs(res.providers)).catch(console.error)
         getMcps().then((res) => setMcps(res.mcps)).catch(console.error)
     }, [])
+
+    useEffect(() => {
+        setSamplingSupport(null)
+        if (!provider || !model) return
+
+        let cancelled = false
+        getModelSampling(provider, model)
+            .then((res) => {
+                if (cancelled) return
+                setSamplingSupport(res.sampling)
+                // Drop values the new model can't accept so they aren't sent with the request
+                setParameters((prev) => ({
+                    temperature: res.sampling.temperature ? prev.temperature : null,
+                    top_p: res.sampling.top_p ? prev.top_p : null,
+                    top_k: res.sampling.top_k ? prev.top_k : null,
+                }))
+            })
+            .catch(console.error)
+        return () => { cancelled = true }
+    }, [provider, model])
 
     async function handleSend() {
         const text = input.trim()
@@ -221,6 +243,7 @@ export function ChatPage() {
                 onWebSearchToggle={() => setWebSearch((v) => !v)}
                 parameters={parameters}
                 onParametersChange={setParameters}
+                samplingSupport={samplingSupport}
             />
         </div>
     )

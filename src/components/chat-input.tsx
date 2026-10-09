@@ -5,6 +5,7 @@ import type { ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 import type { Mcp } from "../services/get-mcps"
 import type { ModelParameters } from "../services/stream-agent"
+import type { ModelSamplingSupport } from "../services/get-model-sampling"
 
 type ChatInputProps = {
     input: string
@@ -28,6 +29,7 @@ type ChatInputProps = {
     onWebSearchToggle: () => void
     parameters: ModelParameters
     onParametersChange: (parameters: ModelParameters) => void
+    samplingSupport: ModelSamplingSupport | null
 }
 
 export function ChatInput({
@@ -52,6 +54,7 @@ export function ChatInput({
     onWebSearchToggle,
     parameters,
     onParametersChange,
+    samplingSupport,
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -100,6 +103,7 @@ export function ChatInput({
                 onWebSearchToggle={onWebSearchToggle}
                 parameters={parameters}
                 onParametersChange={onParametersChange}
+                samplingSupport={samplingSupport}
             />
             <div className="mx-auto max-w-2xl">
                 <div className="rounded-2xl border border-zinc-700/50 bg-zinc-900 shadow-lg shadow-amber-950/10 transition-colors focus-within:border-amber-500/40 focus-within:shadow-amber-500/5">

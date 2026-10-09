@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import type { ModelParameters } from "../services/stream-agent"
+import type { ModelSamplingSupport } from "../services/get-model-sampling"
 
 type SamplingSelectorProps = {
     parameters: ModelParameters
     onChange: (parameters: ModelParameters) => void
+    // Null while unknown (no model selected, loading or failed), in which case every parameter is shown
+    supported: ModelSamplingSupport | null
 }
 
 type ParameterSpec = {
@@ -23,7 +26,7 @@ const PARAMETERS: ParameterSpec[] = [
     { key: "top_k", label: "Top K", hint: "Sample from the K likeliest tokens", min: 1, max: 100, step: 1, placeholder: 40 },
 ]
 
-export function SamplingSelector({ parameters, onChange }: SamplingSelectorProps) {
+export function SamplingSelector({ parameters, onChange, supported }: SamplingSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -39,7 +42,8 @@ export function SamplingSelector({ parameters, onChange }: SamplingSelectorProps
         }
     }, [open])
 
-    const customised = PARAMETERS.some((p) => parameters[p.key] != null)
+    const available = supported ? PARAMETERS.filter((p) => supported[p.key]) : PARAMETERS
+    const customised = available.some((p) => parameters[p.key] != null)
 
     function setParameter(key: keyof ModelParameters, value: number | null) {
         onChange({ ...parameters, [key]: value })
@@ -83,7 +87,7 @@ export function SamplingSelector({ parameters, onChange }: SamplingSelectorProps
                         )}
                     </div>
 
-                    {PARAMETERS.map((spec) => (
+                    {available.map((spec) => (
                         <ParameterSlider
                             key={spec.key}
                             spec={spec}
@@ -92,8 +96,16 @@ export function SamplingSelector({ parameters, onChange }: SamplingSelectorProps
                         />
                     ))}
 
+                    {available.length === 0 && (
+                        <div className="px-3 py-2 text-xs text-zinc-400">
+                            This model doesn't support sampling parameters.
+                        </div>
+                    )}
+
                     <div className="mt-1 border-t border-zinc-800 px-3 pt-2 pb-1 text-[11px] leading-snug text-zinc-500">
-                        Unset parameters use the provider default. Not every model supports every parameter.
+                        {supported
+                            ? "Unset parameters use the provider default. Only parameters this model supports are shown."
+                            : "Unset parameters use the provider default. Not every model supports every parameter."}
                     </div>
                 </div>
             )}
