@@ -8,8 +8,9 @@ export async function addToVectorStore(
     metadatas: VectorStoreMetadata[]
 ): Promise<void> {
     const applicationKey = import.meta.env.VITE_API_KEY
+    const params = new URLSearchParams({ scope })
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/vector_store/${encodeURIComponent(scope)}/add`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/vector_store/add?${params}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

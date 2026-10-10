@@ -86,7 +86,7 @@ export function MyDocumentsPage() {
     async function handleDelete(documentId: string) {
         setDeletingIds(prev => new Set(prev).add(documentId))
         try {
-            await deleteUserDocument(documentId)
+            await deleteUserDocument(documentId, TABS[tab].scope)
             setStoredDocuments(prev => prev.filter(d => d.id !== documentId))
         } catch {
             // leave the item in place so the user can retry

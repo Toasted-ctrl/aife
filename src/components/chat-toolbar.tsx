@@ -15,6 +15,8 @@ type ChatToolbarProps = {
     onUserVsFilesToggle: () => void
     userVsMemories: boolean
     onUserVsMemoriesToggle: () => void
+    userVsSkills: boolean
+    onUserVsSkillsToggle: () => void
     webSearch: boolean
     onWebSearchToggle: () => void
     parameters: ModelParameters
@@ -31,6 +33,8 @@ export function ChatToolbar({
     onUserVsFilesToggle,
     userVsMemories,
     onUserVsMemoriesToggle,
+    userVsSkills,
+    onUserVsSkillsToggle,
     webSearch,
     onWebSearchToggle,
     parameters,
@@ -60,6 +64,8 @@ export function ChatToolbar({
                         onUserVsFilesToggle={onUserVsFilesToggle}
                         userVsMemories={userVsMemories}
                         onUserVsMemoriesToggle={onUserVsMemoriesToggle}
+                        userVsSkills={userVsSkills}
+                        onUserVsSkillsToggle={onUserVsSkillsToggle}
                     />
                     <WebSearchToggle
                         enabled={webSearch}

@@ -9,6 +9,8 @@ type ToolSelectorProps = {
     onUserVsFilesToggle: () => void
     userVsMemories: boolean
     onUserVsMemoriesToggle: () => void
+    userVsSkills: boolean
+    onUserVsSkillsToggle: () => void
 }
 
 export function ToolSelector({
@@ -19,6 +21,8 @@ export function ToolSelector({
     onUserVsFilesToggle,
     userVsMemories,
     onUserVsMemoriesToggle,
+    userVsSkills,
+    onUserVsSkillsToggle,
 }: ToolSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -35,7 +39,7 @@ export function ToolSelector({
         }
     }, [open])
 
-    const count = selectedMcps.length + (userVsFiles ? 1 : 0) + (userVsMemories ? 1 : 0)
+    const count = selectedMcps.length + (userVsFiles ? 1 : 0) + (userVsMemories ? 1 : 0) + (userVsSkills ? 1 : 0)
 
     return (
         <div ref={containerRef} className="relative shrink-0">
@@ -77,6 +81,11 @@ export function ToolSelector({
                         label="User Memories"
                         selected={userVsMemories}
                         onToggle={onUserVsMemoriesToggle}
+                    />
+                    <ToolOption
+                        label="User Skill Discovery"
+                        selected={userVsSkills}
+                        onToggle={onUserVsSkillsToggle}
                     />
 
                     {mcps.length > 0 && (

@@ -25,6 +25,8 @@ type ChatInputProps = {
     onUserVsFilesToggle: () => void
     userVsMemories: boolean
     onUserVsMemoriesToggle: () => void
+    userVsSkills: boolean
+    onUserVsSkillsToggle: () => void
     webSearch: boolean
     onWebSearchToggle: () => void
     parameters: ModelParameters
@@ -50,6 +52,8 @@ export function ChatInput({
     onUserVsFilesToggle,
     userVsMemories,
     onUserVsMemoriesToggle,
+    userVsSkills,
+    onUserVsSkillsToggle,
     webSearch,
     onWebSearchToggle,
     parameters,
@@ -99,6 +103,8 @@ export function ChatInput({
                 onUserVsFilesToggle={onUserVsFilesToggle}
                 userVsMemories={userVsMemories}
                 onUserVsMemoriesToggle={onUserVsMemoriesToggle}
+                userVsSkills={userVsSkills}
+                onUserVsSkillsToggle={onUserVsSkillsToggle}
                 webSearch={webSearch}
                 onWebSearchToggle={onWebSearchToggle}
                 parameters={parameters}

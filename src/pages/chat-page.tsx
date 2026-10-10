@@ -59,6 +59,7 @@ export function ChatPage() {
     const [selectedMcps, setSelectedMcps] = useState<string[]>([])
     const [userVsFiles, setUserVsFiles] = useState(false)
     const [userVsMemories, setUserVsMemories] = useState(false)
+    const [userVsSkills, setUserVsSkills] = useState(false)
     const [webSearch, setWebSearch] = useState(false)
     const [parameters, setParameters] = useState<ModelParameters>({ temperature: null, top_p: null, top_k: null })
     const [samplingSupport, setSamplingSupport] = useState<ModelSamplingSupport | null>(null)
@@ -138,6 +139,7 @@ export function ChatPage() {
                     mcpTools: mcpToolIds,
                     userVsFiles,
                     userVsMemories,
+                    userVsSkills,
                     webSearch,
                 },
                 {
@@ -239,6 +241,8 @@ export function ChatPage() {
                 onUserVsFilesToggle={() => setUserVsFiles((v) => !v)}
                 userVsMemories={userVsMemories}
                 onUserVsMemoriesToggle={() => setUserVsMemories((v) => !v)}
+                userVsSkills={userVsSkills}
+                onUserVsSkillsToggle={() => setUserVsSkills((v) => !v)}
                 webSearch={webSearch}
                 onWebSearchToggle={() => setWebSearch((v) => !v)}
                 parameters={parameters}
